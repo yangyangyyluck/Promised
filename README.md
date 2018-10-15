@@ -12,12 +12,12 @@ class Promised extends Function {
 实现的API  
 Promised.prototype.then()  
 Promised.prototype.catch()  
-Promised.prototype.finally()  
-Promised.prototype.try()  
+Promised.prototype.finally()    
 Promised.all()  
 Promised.race()  
 Promised.resolve()  
 Promised.reject()  
+Promised.try()  
 
 特别注意, Promised.prototype.try() 需要的入参必须是Function类型  
 假设目标操作是内部包含异步流程的函数asyncFn(arg),则需要包裹一层  
