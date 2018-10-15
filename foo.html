@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Promised Demo</title>
+    </head>
+    <body>
+        <h1>Promised Demo</h1>
+    </body>
+    <script type="module">
+        import Promised from './Promised.mjs';
+        import Emitter from './Emitter.mjs';
+
+let ffn = function(msg, timeout, err, async = true) {
+    if (!async && err && msg) {
+        throw new Error(msg);
+    }
+    return new Promised((resolve, rejected) => {
+        setTimeout(() => {
+            if (err) {
+                rejected(msg);
+            } else {
+                resolve(msg);
+            }
+        }, (timeout));
+    });
+}
+
+let f = (d) => {console.log(d)};
+let ff = (d) => {console.log('err : ', d)};
+
+    // Promised.try(() => {
+    //     return ffn(new Error('err....'), 1000, true, false)
+    // }).then(f).then(f).catch(ff)
+
+    // let ppp = ffn('333', 1000);
+    // console.log( ppp);
+    // console.log({name:'lis'})
+
+let p0 = ffn('3', 1000).then((d) => {
+    console.log('d1 : ', d);
+    return Promised.resolve('444');
+}).then((d) => {
+    console.log('d2 : ', d);
+    return ffn('555', 1000);
+}).then(f);
+let p1 = ffn('1', 4000).then(() => {
+    return Promised.reject('11111');
+});
+let p2 = ffn('2', 3000).then(f);
+let p3 = ffn('3', 2000).then(f).then(() => {
+    return Promised.reject('3333');
+});
+let p4 = ffn('4', 1000).then(f);
+
+Promised.race([p0, p1, p2, p3, p4]).then((d) => {
+    console.log('dddd : ', d)
+}).catch(ff);
+
+// Promise.resolve(333).then(f);
+// console.log('next');
+
+// const f = () => console.log('now');
+// (
+//   () => new Promise(
+//     resolve => resolve(f())
+//   )
+// )();
+// console.log('next');
+// now
+// next
+
+// setTimeout(function () {
+//   console.log('three');
+// }, 0);
+
+// Promise.resolve().then(function () {
+//   console.log('two');
+// });
+
+// console.log('one');
+
+//         let pd = Promise.resolve();
+//         pd.then(() => {
+//             console.log('--////')
+//         }).then().finally(function() {
+//             console.log('ddd');
+//         }).then(() => {
+//             console.log('////,,,,')
+//         });
+
+        // let emit = new Emitter();
+        // emit.on('aaa', function(data) {
+        //     console.log('data : ', data);
+        // });
+
+        // emit.on('aaa', function(data) {
+        //     console.log('data2 : ', data);
+        // });
+
+        // emit.on('aaa', function(data) {
+        //     console.log('data3 : ', data);
+        // });
+
+        // emit.emit('aaa', {name:'heheda'});
+
+        // let p = new Promised((resolve, rejected) => {
+        //     console.log('111');
+        //     resolve({name : 'zs'});
+        //     // setTimeout(function() {
+        //     //     resolve({name : 'zs'});
+        //     // }, 1000);
+            
+        // });
+
+        // console.log(p.toString());
+
+        // p.then(function(data) {
+        //     console.log(222, data);
+        // });
+
+        // p.then(function(data) {
+        //     console.log(333, data);
+        // });
+
+        // p.then(function(data) {
+        //     console.log(444, data);
+        //     throw new Error('hehe error');
+        // }).catch(function(err) {
+        //     console.log('err : ', err);
+        // }).then(function(data) {
+        //     console.log('444---2---', data);
+        // }).then(function(data) {
+        //     console.log('444---3---', data);
+        // }).then(function(data) {
+        //     console.log('444---4---', data);
+        // });
+
+        // let ppp = Promised.resolve();
+
+        // ppp.then().catch(function(err) {
+        //     console.log('err : ', err);
+        //     return {name: 'hh'}
+        // }).then(function(data) {
+        //     throw new Error('aaa err');
+        //     // console.log('catch - then : ', data);
+        
+        // }).catch(function(error) {
+        //     console.log('this err : ', error);
+        //     return new Promise((a, b) => {
+        //         setTimeout(function() {
+        //             a('ok!!!!!!!!!!');
+        //         }, 2000);
+        //     });
+        // })
+        // .then((data) => {
+        //     console.log('this data 2222 : ', data);
+        // })
+
+    </script>
+</html>
