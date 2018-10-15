@@ -14,7 +14,7 @@ const PROM_STATE = {
     REJECTED: Symbol('rejected'),
 }
 
-// extends from Object and overwrite toString()
+// extends from Function and overwrite toString()
 class Promised extends Function {
     constructor (fn) {
         super();
