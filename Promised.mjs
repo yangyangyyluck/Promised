@@ -1,6 +1,12 @@
+/**
+ * Promised - a Promise/A+ implementation.
+ * @author yy <yangyangmd5@163.com>
+ * @module Promised
+ */
+
 import Emitter from './Emitter.mjs';
-let debug = false;
-let log = (...args) => {
+const log = (...args) => {
+    const debug = false;
     if (debug) {
         console.log(...args);
     } else {
@@ -8,14 +14,36 @@ let log = (...args) => {
     }
 }
 
+/**
+ * Enum for promise's state.
+ * @readonly
+ * @enum {Symbol}
+ */
 const PROM_STATE = {
     PENDDING: Symbol('pendding'),
     RESOLVE: Symbol('resolve'),
-    REJECTED: Symbol('rejected'),
+    REJECT: Symbol('reject'),
 }
 
-// extends from Function and overwrite toString()
+/**
+ * Promised
+ * @extends Function extends from Function in order to overwrite toString().
+ * @requires module:Emitter
+ */
 class Promised extends Function {
+    /**
+     * this callback is called `promiseCallback` and change promise's state.
+     * @callback promiseCallback
+     * @param {function} resolve  - called reslove, promise's state from PENDDING to RESOLVE.
+     * @param {function} reject   - called reject, promise's state from PENDDING to REJECT.
+     */
+
+    /** 
+     * create a promise instance.
+     * @class
+     * @param {promiseCallback}
+     * @returns {Promised}
+     */
     constructor (fn) {
         super();
 
@@ -33,6 +61,12 @@ class Promised extends Function {
         }
     }
 
+    /**
+     * shortcut for get a RESOLVE promise instance.
+     * @static
+     * @param {*} args - promise instance | thenable | other.
+     * @returns {Promised}
+     */
     static resolve(...args) {
         if (!args.length) {
             return new this((resolve) => {resolve()});
@@ -48,6 +82,12 @@ class Promised extends Function {
         }
     }
 
+    /**
+     * shortcut for get a REJECT promise instance.
+     * @static
+     * @param {*} args - promise instance | thenable | other.
+     * @returns {Promised}
+     */
     static reject(...args) {
         if (!args.length) {
             return new this((resolve, rejected) => {rejected()});
@@ -67,6 +107,14 @@ class Promised extends Function {
         }
     }
 
+    /**
+     * shortcut for get a REJECT/RESOLVE promise instance.
+     * while all children promise's state had been RESOLVE, return's promise state be RESOLVE,
+     * otherwise return's promise state be REJECT.
+     * @static
+     * @param {Iterable} args 
+     * @returns {Promised}
+     */
     static all(arg) {
         let arr;
         try {
@@ -101,6 +149,14 @@ class Promised extends Function {
         });
     }
 
+    /**
+     * shortcut for get a REJECT/RESOLVE promise instance.
+     * while any one child promise's state had been RESOLVE/REJECT,
+     * return's promise state be RESOLVE/REJECT.
+     * @static
+     * @param {Iterable} args 
+     * @returns {Promised}
+     */
     static race(arg) {
         let arr;
         try {
@@ -128,6 +184,13 @@ class Promised extends Function {
         });
     }
 
+    /**
+     * shortcut for get a REJECT/RESOLVE promise instance.
+     * if fn had throw error, return promise's state be REJECT.
+     * otherwise return promise's state be RESOLVE.
+     * @param {function} fn 
+     * @returns {Promised}
+     */
     static try(fn) {
         if (!fn || !(fn instanceof Function)) {
             throw new TypeError('please make sure typeof fn is Function.');
@@ -135,12 +198,12 @@ class Promised extends Function {
 
         return new this((resolve, rejected) => {
             let error, res;
-            let isProm = false;
+            let isPromised = false;
             try {
                 if (fn) {
                     res = fn();
                     if (res && res instanceof Promised) {
-                        isProm = true;
+                        isPromised = true;
                         res.then((d) => {
                             resolve(d);
                         }).catch((e) => {
@@ -153,17 +216,28 @@ class Promised extends Function {
             } finally {
                 if (error) {
                     rejected(error);
-                } else if (!isProm) {
+                } else if (!isPromised) {
                     resolve(res);
-                }    
+                } else {
+                    // res is promised, do nothing.
+                    // promise logic had execute at `try {...}`.
+                }   
             }
         });
     }
 
+    /**
+     * @override return promise's state.
+     * @returns {string}
+     */
     toString() {
         return 'Promised: ' + this.state.toString().replace(/(^Symbol\(|\)$)/g, '');
     }
 
+    /**
+     * this function will bind `this` = `current promise instance`, and delivery to `promiseCallback`.
+     * @param data 
+     */
     resolve(data) {
         if (this.state === PROM_STATE.PENDDING) {
             let state = PROM_STATE.RESOLVE;
@@ -174,9 +248,13 @@ class Promised extends Function {
         }
     }
 
+    /**
+     * this function will bind `this` = `current promise instance`, and delivery to `promiseCallback`.
+     * @param data 
+     */
     rejected(data) {
         if (this.state === PROM_STATE.PENDDING) {
-            let state = PROM_STATE.REJECTED;
+            let state = PROM_STATE.REJECT;
             this.state = state;
             this.data = data;
     
@@ -184,17 +262,23 @@ class Promised extends Function {
         }
     }
 
+    /**
+     * if promise's state had change, resolveFn/rejectedFn will called.
+     * @param {function} resolveFn 
+     * @param {function} rejectedFn 
+     * @returns {Promised}
+     */
     then(resolveFn, rejectedFn) {
         return new Promised((resolve, rejected) => {
         
             let didResolve = function(data) {
                 let error, res;
-                let isProm = false;
+                let isPromised = false;
                 try {
                     if (resolveFn) {
                         res = resolveFn(data);
                         if (res && res instanceof Promised) {
-                            isProm = true;
+                            isPromised = true;
                             res.then((d) => {
                                 resolve(d);
                             }).catch((e) => {
@@ -207,19 +291,23 @@ class Promised extends Function {
                 } finally {
                     if (error) {
                         rejected(error);
-                    } else if (!isProm) {
+                    } else if (!isPromised) {
                         resolve(res);
-                    }    
+                    } else { 
+                      // res is promised, do nothing.
+                      // promise logic had execute at `try {...}`.
+                    }   
                 }
             }
 
             let didReject = function(data) {
                 let error, res;
-                let isProm = false;
+                let isPromised = false;
                 try {
                     if (rejectedFn) {
                         res = rejectedFn(data);
                         if (res && res instanceof Promised) {
+                            isPromised = true;
                             res.then((d) => {
                                 resolve(d);
                             }).catch((e) => {
@@ -234,9 +322,12 @@ class Promised extends Function {
                 } finally {
                     if (error) {
                         rejected(error);
-                    } else if (!isProm) {
+                    } else if (!isPromised) {
                         rejected(res);
-                    }    
+                    } else {
+                      // res is promised, do nothing.
+                      // promise logic had execute at `try {...}`.
+                    }
                 }
             }
 
@@ -244,18 +335,17 @@ class Promised extends Function {
 
             if (this.state === PROM_STATE.RESOLVE) {
                 didResolve(data);
-            } else if (this.state === PROM_STATE.REJECTED) {
+            } else if (this.state === PROM_STATE.REJECT) {
                 didReject(data);
             } else {
                 this.emitter.on(this.eventName, function(msg) {
-                    log('then')
                     let {data, state} = msg;
     
                     if (state === PROM_STATE.RESOLVE) {
                         didResolve(data);
                     }
     
-                    if (state === PROM_STATE.REJECTED) {
+                    if (state === PROM_STATE.REJECT) {
                         didReject(data);
                     }
                 });
@@ -263,17 +353,22 @@ class Promised extends Function {
         });
     }
 
+    /**
+     * if promise's state had change to REJECT, fn will be called.
+     * @param {function} resolveFn 
+     * @param {function} rejectedFn 
+     * @returns {Promised}
+     */
     catch(fn) {
         return new Promise((resolve, rejected) => {
             
             let didReject = function(data) {
                 let error;
-                let isProm = false;
                 try {
                     if (fn) {
-                        let p = fn(data);
-                        if (p && p instanceof Promised) {
-                            p.then((d) => {
+                        let res = fn(data);
+                        if (res && res instanceof Promised) {
+                            res.then((d) => {
                                 resolve(d);
                             }).catch((e) => {
                                 rejected(e);
@@ -295,18 +390,17 @@ class Promised extends Function {
 
             if (this.state === PROM_STATE.RESOLVE) {
                 resolve();
-            } else if (this.state === PROM_STATE.REJECTED) {
+            } else if (this.state === PROM_STATE.REJECT) {
                 didReject(data);
             } else {
                 this.emitter.on(this.eventName, function(msg) {
-                    log('catch')
                     let {data, state} = msg;
     
                     if (state === PROM_STATE.RESOLVE) {
                         resolve();
                     }
     
-                    if (state === PROM_STATE.REJECTED) {
+                    if (state === PROM_STATE.REJECT) {
                         didReject(data);
                     }
                 });
@@ -314,6 +408,10 @@ class Promised extends Function {
         });
     }
 
+    /**
+     * no matter promise's state was REJECT/RESOLVE, fn will be called at finally.
+     * @param {function} fn 
+     */
     finally(fn) {
         let f = () => {
             fn();
