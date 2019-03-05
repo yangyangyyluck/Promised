@@ -334,9 +334,13 @@ class Promised extends Function {
             let data = this.data;
 
             if (this.state === PROM_STATE.RESOLVE) {
+              setTimeout(() => {
                 didResolve(data);
+              });
             } else if (this.state === PROM_STATE.REJECT) {
-                didReject(data);
+                setTimeout(() => {
+                  didReject(data);
+                });
             } else {
                 this.emitter.on(this.eventName, function(msg) {
                     let {data, state} = msg;
