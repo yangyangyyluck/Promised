@@ -1,174 +1,140 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <meta charset="utf8">
         <title>Promised Demo</title>
     </head>
     <body>
         <h1>Promised Demo</h1>
     </body>
+    <script src="https://cdn.jsdelivr.net/npm/bluebird"></script>
     <script type="module">
         import Promised from './Promised.mjs';
         import Emitter from './Emitter.mjs';
 
-let ffn = function(msg, timeout, err, async = true) {
-    if (!async && err && msg) {
-        throw new Error(msg);
-    }
-    return new Promised((resolve, rejected) => {
-        setTimeout(() => {
-            if (err) {
-                rejected(msg);
-            } else {
-                resolve(msg);
+        let t = function(res) {
+            console.log(`then : ${res}`)
+        };
+
+        let c = function(res) {
+            console.log(`catch : ${res}`)
+        };
+
+        let fResolve = function(res) {
+            return function(resolve, reject) {
+                setTimeout(() => {
+                    resolve(res)
+                }, 1000)
             }
-        }, (timeout));
-    });
-}
+        }
 
-let f = (d) => {console.log(d)};
-let ff = (d) => {console.log('err : ', d)};
+        let fResolveSync = function(res) {
+            return function(resolve, reject) {
+                resolve(res)
+            }
+        }
 
-    // Promised.try(() => {
-    //     return ffn(new Error('err....'), 1000, true, false)
-    // }).then(f).then(f).catch(ff)
+        let fRejected = function(res) {
+            return function(resolve, reject) {
+                setTimeout(() => {
+                    reject(res)
+                }, 1000)
+            }
+        }
 
-    // let ppp = ffn('333', 1000);
-    // console.log( ppp);
-    // console.log({name:'lis'})
+        let fRejectedSync = function(res) {
+            return function(resolve, reject) {
+                reject(res)
+            }
+        }
 
-let p0 = ffn('3', 1000).then((d) => {
-    console.log('d1 : ', d);
-    return Promised.resolve('444');
-}).then((d) => {
-    console.log('d2 : ', d);
-    return ffn('555', 1000);
-}).then(f);
-let p1 = ffn('1', 4000).then(() => {
-    return Promised.reject('11111');
-});
-let p2 = ffn('2', 3000).then(f);
-let p3 = ffn('3', 2000).then(f).then(() => {
-    return Promised.reject('3333');
-});
-let p4 = ffn('4', 1000).then(f);
+        let fCatch = function(res) {
+            return function(resolve, reject) {
+                setTimeout(() => {
+                    console.log(FactoryCatch)
+                }, 1000)
+            }
+        }
 
-Promised.race([p0, p1, p2, p3, p4]).then((d) => {
-    console.log('dddd : ', d)
-}).catch(ff);
+        let fCatchSync = function(res) {
+            return function(resolve, reject) {
+                console.log(FactoryCatch)
+            }
+        }
 
-Promised.reject(new Error('3311---1133')).then(function (data) {
-  console.log(data);
-}, function (error) {
-  return new Promised((resolve, reject) => {
-    setTimeout(() => {
-      resolve(error);
-    }, 1000);
-  });
-}).then(() => {
-  console.log('then -----');
-}).catch(() => {
-  console.log('catch -----');
-});
+        let tCatch = function(res) {
+            console.log('then : ', res)
+            console.log(ThenCatch)
+        }
 
-// Promise.resolve(333).then(f);
-// console.log('next');
+        let cCatch = function(err) {
+            console.log('catch : ', err)
+            console.log(CatchCatch)
+        }
 
-// const f = () => console.log('now');
-// (
-//   () => new Promise(
-//     resolve => resolve(f())
-//   )
-// )();
-// console.log('next');
-// now
-// next
+        // 1.1 普通异步promise resolve
+        function test1_1() {
+            new Promise(fResolve('普通异步promise resolve')).then(t);
+            new Promised(fResolve('普通异步promised resolve')).then(t);
+        }
 
-// setTimeout(function () {
-//   console.log('three');
-// }, 0);
+        // 1.2 普通异步promise rejected
+        function test1_2() {
+            new Promise(fRejected('普通异步promise rejected')).then(t, c);
+            new Promise(fRejected('普通异步promise rejected')).then(t).catch(c);
 
-// Promise.resolve().then(function () {
-//   console.log('two');
-// });
+            new Promised(fRejected('普通异步promised rejected')).then(t, c);
+            new Promised(fRejected('普通异步promised rejected')).then(t).catch(c);
+        }
 
-// console.log('one');
+        // 2.1 普通同步promise resolve
+        function test2_1() {
+            new Promise(fResolveSync('普通同步promise resolve')).then(t);
+            new Promised(fResolveSync('普通同步promised resolve')).then(t);
+        }
 
-//         let pd = Promise.resolve();
-//         pd.then(() => {
-//             console.log('--////')
-//         }).then().finally(function() {
-//             console.log('ddd');
-//         }).then(() => {
-//             console.log('////,,,,')
-//         });
+        // 2.2 普通同步promise rejected
+        function test2_2() {
+          new Promise(fRejectedSync('普通同步promise rejected')).then(t, c);
+          new Promise(fRejectedSync('普通同步promise rejected')).then(t).catch(c);
 
-        // let emit = new Emitter();
-        // emit.on('aaa', function(data) {
-        //     console.log('data : ', data);
-        // });
+          new Promised(fRejectedSync('普通同步promised rejected')).then(t, c);
+          new Promised(fRejectedSync('普通同步promised rejected')).then(t).catch(c);
+        }
 
-        // emit.on('aaa', function(data) {
-        //     console.log('data2 : ', data);
-        // });
+        // 3.1 构造函数 / then / catch 中catch
+        function test3_1() {
+            new Promise(fCatch('普通同步promise 构造函数中catch')).then(t).catch(c);
+            new Promised(fCatch('普通同步promise 构造函数中catch')).then(t).catch(c);
 
-        // emit.on('aaa', function(data) {
-        //     console.log('data3 : ', data);
-        // });
+            new Promise(fResolveSync('普通同步promise then方法catch')).then(tCatch).catch(c);
+            new Promised(fResolveSync('普通同步promised then方法catch')).then(tCatch).catch(c);
 
-        // emit.emit('aaa', {name:'heheda'});
+            new Promise(fCatch('普通异步promise then方法catch')).then(t, cCatch)
+            new Promised(fCatch('普通异步promised then方法catch')).then(t, cCatch)
 
-        // let p = new Promised((resolve, rejected) => {
-        //     console.log('111');
-        //     resolve({name : 'zs'});
-        //     // setTimeout(function() {
-        //     //     resolve({name : 'zs'});
-        //     // }, 1000);
-            
-        // });
+            new Promise(fCatchSync('普通同步promise then方法catch')).then(t, cCatch)
+            new Promised(fCatchSync('普通同步promised then方法catch')).then(t, cCatch)
 
-        // console.log(p.toString());
+            new Promise(fResolveSync('普通同步promise then方法catch')).then(tCatch, c)
+            new Promised(fResolveSync('普通同步promised then方法catch')).then(tCatch, c)
+        }
 
-        // p.then(function(data) {
-        //     console.log(222, data);
-        // });
+        // test1_1();
+        // test1_2();
+        // test2_1();
+        // test2_2();
+        test3_1();
 
-        // p.then(function(data) {
-        //     console.log(333, data);
-        // });
+        // try {
+        //     setTimeout(() => {
+        //         console.log(bbbf)
+        //     }, 1000)
+        // } catch (e) {
+        //     console.log(e)
+        // }
 
-        // p.then(function(data) {
-        //     console.log(444, data);
-        //     throw new Error('hehe error');
-        // }).catch(function(err) {
-        //     console.log('err : ', err);
-        // }).then(function(data) {
-        //     console.log('444---2---', data);
-        // }).then(function(data) {
-        //     console.log('444---3---', data);
-        // }).then(function(data) {
-        //     console.log('444---4---', data);
-        // });
-
-        // let ppp = Promised.resolve();
-
-        // ppp.then().catch(function(err) {
-        //     console.log('err : ', err);
-        //     return {name: 'hh'}
-        // }).then(function(data) {
-        //     throw new Error('aaa err');
-        //     // console.log('catch - then : ', data);
-        
-        // }).catch(function(error) {
-        //     console.log('this err : ', error);
-        //     return new Promise((a, b) => {
-        //         setTimeout(function() {
-        //             a('ok!!!!!!!!!!');
-        //         }, 2000);
-        //     });
-        // })
-        // .then((data) => {
-        //     console.log('this data 2222 : ', data);
-        // })
-
+    </script>
+    <script>
     </script>
 </html>
