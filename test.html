@@ -104,36 +104,27 @@
 
         // 3.1 构造函数 / then / catch 中catch
         function test3_1() {
-            new Promise(fCatch('普通同步promise 构造函数中catch')).then(t).catch(c);
-            new Promised(fCatch('普通同步promise 构造函数中catch')).then(t).catch(c);
+            // new Promise(fCatch('普通同步promise 构造函数中catch')).then(t).catch(c);
+            // new Promised(fCatch('普通同步promise 构造函数中catch')).then(t).catch(c);
 
-            new Promise(fResolveSync('普通同步promise then方法catch')).then(tCatch).catch(c);
-            new Promised(fResolveSync('普通同步promised then方法catch')).then(tCatch).catch(c);
+            // new Promise(fResolveSync('普通同步promise then方法catch')).then(tCatch).catch(c);
+            // new Promised(fResolveSync('普通同步promised then方法catch')).then(tCatch).catch(c);
 
-            new Promise(fCatch('普通异步promise then方法catch')).then(t, cCatch)
-            new Promised(fCatch('普通异步promised then方法catch')).then(t, cCatch)
+            // new Promise(fCatch('普通异步promise then方法catch')).then(t, cCatch)
+            // new Promised(fCatch('普通异步promised then方法catch')).then(t, cCatch)
 
-            new Promise(fCatchSync('普通同步promise then方法catch')).then(t, cCatch)
-            new Promised(fCatchSync('普通同步promised then方法catch')).then(t, cCatch)
+            // new Promise(fCatchSync('普通同步promise then方法catch')).then(t, cCatch)
+            // new Promised(fCatchSync('普通同步promised then方法catch')).then(t, cCatch)
 
-            new Promise(fResolveSync('普通同步promise then方法catch')).then(tCatch, c)
-            new Promised(fResolveSync('普通同步promised then方法catch')).then(tCatch, c)
+            // new Promise(fResolveSync('普通同步promise then方法catch')).then(tCatch, c)
+            // new Promised(fResolveSync('普通同步promised then方法catch')).then(tCatch, c)
         }
 
         // test1_1();
         // test1_2();
         // test2_1();
         // test2_2();
-        test3_1();
-
-        // try {
-        //     setTimeout(() => {
-        //         console.log(bbbf)
-        //     }, 1000)
-        // } catch (e) {
-        //     console.log(e)
-        // }
-
+        // test3_1();
     </script>
     <script>
     </script>
