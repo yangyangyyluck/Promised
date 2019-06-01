@@ -120,11 +120,19 @@
             // new Promised(fResolveSync('普通同步promised then方法catch')).then(tCatch, c)
         }
 
+        // 3.2 try
+        function test3_2() {
+          const f = () => setTimeout(() => {throw new Error('err')});
+          Promised.try(f).catch(err => console.log(err));
+          console.log('next');
+        }
+
         // test1_1();
         // test1_2();
         // test2_1();
         // test2_2();
         // test3_1();
+        // test3_2();
     </script>
     <script>
     </script>
